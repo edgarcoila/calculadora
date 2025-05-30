@@ -1,59 +1,52 @@
+
 import streamlit as st
-from math import sqrt, log
+import math
 
-st.set_page_config(page_title="Artritis Reumatoide", layout="centered")
-st.title("Artritis Reumatoide")
+st.title("🦴 Artritis Reumatoide")
 
-def das28_esr(tjc28, sjc28, vsr, gh):
-    vsr = vsr if vsr >= 1 else 1
-    return round(0.56 * sqrt(tjc28) + 0.28 * sqrt(sjc28) + 0.70 * log(vsr) + 0.014 * gh, 2)
+# Componentes compartidos
+tjc28 = st.number_input("TJC28 - Articulaciones dolorosas (0–28)", min_value=0, step=1)
+sjc28 = st.number_input("SJC28 - Articulaciones inflamadas (0–28)", min_value=0, step=1)
+gh = st.number_input("GH - Evaluación global de salud (0–100 mm)", min_value=0.0, max_value=100.0)
 
-def das28_crp(tjc28, sjc28, crp, gh):
-    return round(0.56 * sqrt(tjc28) + 0.28 * sqrt(sjc28) + 0.36 * log(crp + 1) + 0.014 * gh + 0.96, 2)
+# DAS28-VSG
+st.header("🔹 DAS28–VSG")
+vsr = st.number_input("VSG - Velocidad de sedimentación globular (mm/h)", min_value=0.0)
+if st.button("Calcular DAS28–VSG"):
+    if any(v is None or v == '' for v in [tjc28, sjc28, vsr, gh]):
+        st.error("Todos los campos deben ser completados.")
+    else:
+        vsr = vsr if vsr >= 1 else 1
+        das28_vsg = 0.56 * math.sqrt(tjc28) + 0.28 * math.sqrt(sjc28) + 0.70 * math.log(vsr) + 0.014 * gh
+        st.success(f"DAS28–VSG: {das28_vsg:.2f}")
 
-def cdai(tjc28, sjc28, pga, ega):
-    return round(tjc28 + sjc28 + pga + ega, 2)
+# DAS28-PCR
+st.header("🔹 DAS28–PCR")
+crp = st.number_input("PCR - Proteína C reactiva (mg/L)", min_value=0.0)
+if st.button("Calcular DAS28–PCR"):
+    if any(v is None or v == '' for v in [tjc28, sjc28, crp, gh]):
+        st.error("Todos los campos deben ser completados.")
+    else:
+        das28_pcr = 0.56 * math.sqrt(tjc28) + 0.28 * math.sqrt(sjc28) + 0.36 * math.log(crp + 1) + 0.014 * gh + 0.96
+        st.success(f"DAS28–PCR: {das28_pcr:.2f}")
 
-def sdai(tjc28, sjc28, pga, ega, crp):
-    return round(tjc28 + sjc28 + pga + ega + crp, 2)
+# CDAI
+st.header("🔹 CDAI")
+pga = st.number_input("PGA - Autoevaluación del paciente (0–10)", min_value=0.0, max_value=10.0)
+ega = st.number_input("EGA - Evaluación del médico (0–10)", min_value=0.0, max_value=10.0)
+if st.button("Calcular CDAI"):
+    if any(v is None or v == '' for v in [tjc28, sjc28, pga, ega]):
+        st.error("Todos los campos deben ser completados.")
+    else:
+        cdai = tjc28 + sjc28 + pga + ega
+        st.success(f"CDAI: {cdai:.2f}")
 
-st.subheader("DAS28 – VSG")
-with st.form("form_das28_vsg"):
-    tjc = st.number_input("TJC28", min_value=0, value=0)
-    sjc = st.number_input("SJC28", min_value=0, value=0)
-    vsr = st.number_input("VSG (mm/h)", min_value=0.0, value=0.0)
-    gh = st.number_input("GH (0–100)", min_value=0.0, value=0.0)
-    if st.form_submit_button("Calcular"):
-        resultado = das28_esr(tjc, sjc, vsr, gh)
-        st.success(f"DAS28-VSG: {resultado}")
-
-st.subheader("DAS28 – PCR")
-with st.form("form_das28_pcr"):
-    tjc = st.number_input("TJC28", min_value=0, value=0, key="d2_tjc")
-    sjc = st.number_input("SJC28", min_value=0, value=0, key="d2_sjc")
-    crp = st.number_input("PCR (mg/L)", min_value=0.0, value=0.0, key="d2_crp")
-    gh = st.number_input("GH (0–100)", min_value=0.0, value=0.0, key="d2_gh")
-    if st.form_submit_button("Calcular"):
-        resultado = das28_crp(tjc, sjc, crp, gh)
-        st.success(f"DAS28-PCR: {resultado}")
-
-st.subheader("CDAI")
-with st.form("form_cdai"):
-    tjc = st.number_input("TJC28", min_value=0, value=0, key="c_tjc")
-    sjc = st.number_input("SJC28", min_value=0, value=0, key="c_sjc")
-    pga = st.number_input("PGA (0–10)", min_value=0.0, value=0.0, key="c_pga")
-    ega = st.number_input("EGA (0–10)", min_value=0.0, value=0.0, key="c_ega")
-    if st.form_submit_button("Calcular"):
-        resultado = cdai(tjc, sjc, pga, ega)
-        st.success(f"CDAI: {resultado}")
-
-st.subheader("SDAI")
-with st.form("form_sdai"):
-    tjc = st.number_input("TJC28", min_value=0, value=0, key="s_tjc")
-    sjc = st.number_input("SJC28", min_value=0, value=0, key="s_sjc")
-    pga = st.number_input("PGA (0–10)", min_value=0.0, value=0.0, key="s_pga")
-    ega = st.number_input("EGA (0–10)", min_value=0.0, value=0.0, key="s_ega")
-    crp = st.number_input("PCR (mg/dL)", min_value=0.0, value=0.0, key="s_crp")
-    if st.form_submit_button("Calcular"):
-        resultado = sdai(tjc, sjc, pga, ega, crp)
-        st.success(f"SDAI: {resultado}")
+# SDAI
+st.header("🔹 SDAI")
+crp_sdai = st.number_input("PCR (mg/dL) para SDAI", min_value=0.0)
+if st.button("Calcular SDAI"):
+    if any(v is None or v == '' for v in [tjc28, sjc28, pga, ega, crp_sdai]):
+        st.error("Todos los campos deben ser completados.")
+    else:
+        sdai = tjc28 + sjc28 + pga + ega + crp_sdai
+        st.success(f"SDAI: {sdai:.2f}")
