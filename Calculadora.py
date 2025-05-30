@@ -1,3 +1,6 @@
+# Esta pendiente agregar el logo
+# Personalizar un poco más
+
 import streamlit as st
 
 st.set_page_config(page_title="Calculadora de Actividad Reumatológica", layout="centered")
